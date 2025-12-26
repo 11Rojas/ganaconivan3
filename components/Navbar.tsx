@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Menu, X, Settings, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import siteConfig from "@/config/site"
-import { Telegram } from "@/components/Telegram"
+import WhatsApp from "@/components/Whatsapp"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -36,12 +36,12 @@ export default function Navbar() {
               Verificar Tickets
             </Link>
             <a
-              href="https://t.me/+584166571872"
+              href="https://wa.me/584127452761"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center space-x-1 text-white hover:text-[#0088cc] transition-colors"
+              className="flex items-center space-x-1 text-white hover:text-[#25D366] transition-colors"
             >
-              <Telegram className="w-6 h-6" />
+              <WhatsApp className="w-6 h-6" />
             </a>
           </div>
 
@@ -79,14 +79,14 @@ export default function Navbar() {
                 Verificar Tickets
               </Link>
               <a
-                href="https://t.me/+584166571872"
+                href="https://wa.me/584127452761"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-2 px-4 py-3 text-white hover:text-[#0088cc] hover:bg-[#0088cc]/10 transition-all duration-300 rounded-lg font-medium"
+                className="flex items-center space-x-2 px-4 py-3 text-white hover:text-[#25D366] hover:bg-[#25D366]/10 transition-all duration-300 rounded-lg font-medium"
                 onClick={() => setIsOpen(false)}
               >
-                <Telegram className="w-5 h-5" />
-                <span>Telegram/span>
+                <WhatsApp className="w-5 h-5" />
+                <span>WhatsApp</span>
               </a>
             </div>
           </div>

@@ -12,7 +12,7 @@ import PaymentScreen from "./PaymentScreen"
 import PersonalDataForm from "./PersonalDataForm"
 import TicketVerifierModal from "./TicketVerifierModal"
 import PrizesModal from "./PrizesModal"
-import { Telegram } from "./Telegram"
+import WhatsApp from "./Whatsapp"
 
 interface MobileHeroProps {
   raffle: Raffle
@@ -142,13 +142,13 @@ export default function MobileHero({ raffle, exchangeRate, otherRaffles = [] }: 
           </button>
           
           <a 
-            href="https://t.me/+584166571872" 
+            href="https://wa.me/584127452761" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex items-center space-x-1 text-white hover:text-[#0088cc] transition-colors"
+            className="flex items-center space-x-1 text-white hover:text-[#25D366] transition-colors"
           >
-            <Telegram />
-            <span className="text-sm hidden sm:inline">Telegram</span>
+            <WhatsApp />
+            <span className="text-sm hidden sm:inline">WhatsApp</span>
           </a>
         </div>
       </header>

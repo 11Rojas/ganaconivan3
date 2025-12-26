@@ -12,7 +12,7 @@ import FullScreenModal from "@/components/FullScreenModal"
 import PaymentScreen from "@/components/PaymentScreen"
 import PersonalDataForm from "@/components/PersonalDataForm"
 import TicketVerifierModal from "@/components/TicketVerifierModal"
-import { Telegram } from "@/components/Telegram"
+import WhatsApp from "@/components/Whatsapp"
 
 export default function RaffleDetailPage() {
   const params = useParams()
@@ -179,13 +179,13 @@ export default function RaffleDetailPage() {
           </button>
           
           <a 
-            href="https://t.me/+584166571872" 
+            href="https://wa.me/584127452761" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex items-center space-x-1 text-white hover:text-[#0088cc] transition-colors"
+            className="flex items-center space-x-1 text-white hover:text-[#25D366] transition-colors"
           >
-            <Telegram />
-            <span className="text-sm">Telegram</span>
+            <WhatsApp />
+            <span className="text-sm">WhatsApp</span>
           </a>
         </div>
       </header>
