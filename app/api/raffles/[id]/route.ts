@@ -1,0 +1,174 @@
+import { NextRequest, NextResponse } from "next/server"
+import { connectDB } from "@/lib/mongodb"
+import Raffle from "@/models/Raffle"
+import { requireAdmin } from "@/lib/auth"
+import cloudinary from "@/lib/cloudinary"
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    await connectDB()
+    
+    const { id } = await params
+    
+    const raffle = await Raffle.findById(id)
+    
+    if (!raffle) {
+      return NextResponse.json(
+        { error: "Rifa no encontrada" },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json(raffle)
+  } catch (error) {
+    console.error("Error fetching raffle:", error)
+    return NextResponse.json(
+      { error: "Error al obtener la rifa" },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await requireAdmin()
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    await connectDB()
+    
+    const { id } = await params
+    
+    const raffle = await Raffle.findById(id)
+    if (!raffle) {
+      return NextResponse.json(
+        { error: "Rifa no encontrada" },
+        { status: 404 }
+      )
+    }
+
+    const formData = await request.formData()
+    const title = formData.get("title") as string
+    const description = formData.get("description") as string
+    const ticketPrice = parseFloat(formData.get("ticketPrice") as string)
+    const totalNumbers = parseInt(formData.get("totalNumbers") as string)
+    const minTickets = parseInt(formData.get("minTickets") as string) || 1
+    const drawDate = formData.get("drawDate") as string
+    const imageFile = formData.get("image") as File | null
+    const currentImage = formData.get("currentImage") as string
+
+    let imageUrl = currentImage || ""
+
+    // Subir nueva imagen a Cloudinary si existe
+    if (imageFile) {
+      const arrayBuffer = await imageFile.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+
+      const result = await new Promise<any>((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { folder: "rifas", resource_type: "auto" },
+          (error, result) => {
+            if (error) {
+              console.error("Cloudinary upload error:", error)
+              reject(error)
+              return
+            }
+            resolve(result)
+          }
+        ).end(buffer)
+      })
+
+      imageUrl = (result as any)?.secure_url || currentImage || ""
+
+      // Eliminar imagen anterior de Cloudinary si existe
+      if (currentImage && currentImage !== imageUrl) {
+        try {
+          const publicId = currentImage.split('/').pop()?.split('.')[0]
+          if (publicId) {
+            await cloudinary.uploader.destroy(`rifas/${publicId}`)
+          }
+        } catch (error) {
+          console.error("Error deleting old image:", error)
+        }
+      }
+    }
+
+    // Actualizar la rifa
+    const updatedRaffle = await Raffle.findByIdAndUpdate(
+      id,
+      {
+        title,
+        description,
+        ticketPrice,
+        totalNumbers,
+        minTickets,
+        drawDate: new Date(drawDate),
+        image: imageUrl,
+        updatedAt: new Date()
+      },
+      { new: true }
+    )
+
+    return NextResponse.json(updatedRaffle)
+  } catch (error) {
+    console.error("Error updating raffle:", error)
+    return NextResponse.json(
+      { error: "Error al actualizar la rifa" },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await requireAdmin()
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    await connectDB()
+    
+    const { id } = await params
+    
+    const raffle = await Raffle.findById(id)
+    if (!raffle) {
+      return NextResponse.json(
+        { error: "Rifa no encontrada" },
+        { status: 404 }
+      )
+    }
+
+    // Eliminar imagen de Cloudinary si existe
+    if (raffle.image) {
+      try {
+        const publicId = raffle.image.split('/').pop()?.split('.')[0]
+        if (publicId) {
+          await cloudinary.uploader.destroy(`rifas/${publicId}`)
+        }
+      } catch (error) {
+        console.error("Error deleting image from Cloudinary:", error)
+      }
+    }
+
+    // Eliminar la rifa
+    await Raffle.findByIdAndDelete(id)
+
+    return NextResponse.json({ message: "Rifa eliminada correctamente" })
+  } catch (error) {
+    console.error("Error deleting raffle:", error)
+    return NextResponse.json(
+      { error: "Error al eliminar la rifa" },
+      { status: 500 }
+    )
+  }
+}
