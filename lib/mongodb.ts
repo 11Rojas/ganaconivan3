@@ -24,7 +24,7 @@ export async function connectDB() {
     }
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      console.log("Connected to MongoDB - Database: ganacomivan2")
+      console.log("Connected to MongoDB - Database: ganacomivan3")
       return mongoose
     })
   }

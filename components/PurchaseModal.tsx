@@ -52,7 +52,7 @@ interface PaymentMethodConfig {
   accountDetails: Record<string, string>
 }
 
-const paymentMethods: PaymentMethodConfig[] = [
+const defaultPaymentMethods: PaymentMethodConfig[] = [
   {
     id: "venezolano-credito",
     name: "0104 Venezolano de Crédito",
@@ -82,6 +82,7 @@ export default function RaffleCard({ raffle }: { raffle: Raffle }) {
   const [receipt, setReceipt] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodConfig[]>(defaultPaymentMethods)
 
   const [paymentData, setPaymentData] = useState<Record<PaymentMethod, PaymentMethodData>>({
     "venezolano-credito": {}
@@ -112,6 +113,28 @@ export default function RaffleCard({ raffle }: { raffle: Raffle }) {
       }
     }
     fetchExchangeRate()
+  }, [])
+
+  useEffect(() => {
+    const fetchPaymentConfig = async () => {
+      try {
+        const response = await fetch("/api/payment-config")
+        if (response.ok) {
+          const config = await response.json()
+          setPaymentMethods([{
+            ...defaultPaymentMethods[0],
+            accountDetails: {
+              telefono: config.phone,
+              banco: config.bank,
+              cedula: config.cedula
+            }
+          }])
+        }
+      } catch (error) {
+        console.error("Error fetching payment config:", error)
+      }
+    }
+    fetchPaymentConfig()
   }, [])
 
   const formatPrice = (price: number) => {

@@ -32,13 +32,33 @@ export default function PaymentScreen({
 }: PaymentScreenProps) {
   const [timeLeft, setTimeLeft] = useState(10 * 60) // 10 minutos en segundos
   const [copiedField, setCopiedField] = useState<string | null>(null)
-
-  // Datos de pago móvil reales (del modal anterior)
-  const paymentData = {
+  const [paymentData, setPaymentData] = useState({
     bank: "0104 Venezolano de Crédito",
     phone: "04249172493",
     cedula: "30744670"
-  }
+  })
+
+  // Cargar datos de pago móvil desde la API
+  useEffect(() => {
+    const fetchPaymentConfig = async () => {
+      try {
+        const response = await fetch("/api/payment-config")
+        if (response.ok) {
+          const config = await response.json()
+          setPaymentData({
+            bank: config.bank,
+            phone: config.phone,
+            cedula: config.cedula
+          })
+        }
+      } catch (error) {
+        console.error("Error fetching payment config:", error)
+      }
+    }
+    if (isOpen) {
+      fetchPaymentConfig()
+    }
+  }, [isOpen])
 
   // Timer countdown
   useEffect(() => {

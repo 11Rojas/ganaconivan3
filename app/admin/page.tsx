@@ -9,8 +9,9 @@ import RaffleManagement from "@/components/admin/RaffleManagement"
 import PaymentManagement from "@/components/admin/PaymentManagement"
 import ExchangeRateManager from "@/components/admin/ExchangeRateManager"
 import Analytics from "@/components/admin/Analytics"
+import PaymentConfigManager from "@/components/admin/PaymentConfigManager"
 
-type AdminView = "dashboard" | "raffles" | "payments" | "exchange" | "analytics"
+type AdminView = "dashboard" | "raffles" | "payments" | "exchange" | "analytics" | "payment-config"
 
 // Extender el tipo de sesión para incluir el rol
 interface ExtendedSession {
@@ -117,6 +118,8 @@ export default function AdminPage() {
         return <ExchangeRateManager />
       case "analytics":
         return <Analytics />
+      case "payment-config":
+        return <PaymentConfigManager />
       default:
         return <AdminDashboard />
     }
