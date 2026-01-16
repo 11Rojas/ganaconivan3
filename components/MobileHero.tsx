@@ -157,7 +157,7 @@ export default function MobileHero({ raffle, exchangeRate, otherRaffles = [] }: 
       {/* Main Image Section */}
       <div className="relative w-full h-[25vh] overflow-hidden">
         <Image
-          src={raffle.image || "/placeholder.svg"}
+          src={getImageUrl(raffle.image, "/placeholder.svg")}
           alt={raffle.title}
           fill
           className="object-cover"
