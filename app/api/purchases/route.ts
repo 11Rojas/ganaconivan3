@@ -139,16 +139,7 @@ export async function POST(request: NextRequest) {
     let receiptUrl = ""
     if (receiptFile) {
       try {
-        const arrayBuffer = await receiptFile.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-
-        const result = await uploadToOpeninary(buffer, {
-          folder: "receipts",
-          filename: receiptFile.name,
-          resourceType: "auto"
-        })
-
-        receiptUrl = result.url || ""
+        receiptUrl = await uploadToOpeninary(receiptFile, "receipts", receiptFile.name)
       } catch (error) {
         console.error('Error subiendo comprobante:', error)
         // Continuar sin comprobante si hay error

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/mongodb"
 import Raffle from "@/models/Raffle"
 import { requireAdmin } from "@/lib/auth"
-import { uploadToOpeninary, deleteFromOpeninary } from "@/lib/openinary"
+import { uploadToOpeninary } from "@/lib/openinary"
 
 export async function GET(
   request: NextRequest,
@@ -69,28 +69,7 @@ export async function PUT(
     // Subir nueva imagen a Openinary si existe
     if (imageFile) {
       try {
-        const arrayBuffer = await imageFile.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-
-        const result = await uploadToOpeninary(buffer, {
-          folder: "rifas",
-          filename: imageFile.name,
-          resourceType: "auto"
-        })
-
-        imageUrl = result.url || currentImage || ""
-
-        // Eliminar imagen anterior de Openinary si existe
-        if (currentImage && currentImage !== imageUrl) {
-          try {
-            const publicId = currentImage.split('/').pop()?.split('.')[0]
-            if (publicId) {
-              await deleteFromOpeninary(`rifas/${publicId}`)
-            }
-          } catch (error) {
-            console.error("Error deleting old image:", error)
-          }
-        }
+        imageUrl = await uploadToOpeninary(imageFile, "rifas", imageFile.name)
       } catch (error) {
         console.error("Openinary upload error:", error)
         throw new Error("Error al subir la imagen")
@@ -145,17 +124,8 @@ export async function DELETE(
       )
     }
 
-    // Eliminar imagen de Openinary si existe
-    if (raffle.image) {
-      try {
-        const publicId = raffle.image.split('/').pop()?.split('.')[0]
-        if (publicId) {
-          await deleteFromOpeninary(`rifas/${publicId}`)
-        }
-      } catch (error) {
-        console.error("Error deleting image from Openinary:", error)
-      }
-    }
+    // Nota: Openinary no tiene endpoint de eliminación en este momento
+    // Las imágenes antiguas se mantienen en el servidor
 
     // Eliminar la rifa
     await Raffle.findByIdAndDelete(id)

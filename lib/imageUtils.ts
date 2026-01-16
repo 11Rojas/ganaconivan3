@@ -12,12 +12,29 @@ export function getImageUrl(imageUrl: string | undefined, fallback: string = "/p
     return imageUrl;
   }
 
-  // Si es una ruta relativa local, devolverla tal cual
+  // Si es una ruta relativa local (placeholder, logos, etc), devolverla tal cual
   if (imageUrl.startsWith('/') && !imageUrl.startsWith('//')) {
-    return imageUrl;
+    // Excepto si es del servidor de Openinary (empezará con /t/)
+    if (!imageUrl.startsWith('/t/')) {
+      return imageUrl;
+    }
   }
 
-  // Si es una URL externa (Openinary, Cloudinary, etc), usar el proxy
+  // Si es una URL de Openinary (contiene la IP del servidor o /t/), usar el proxy
+  // Las URLs de Openinary vienen como: http://158.69.213.106:3000/t/path.jpg
+  if (imageUrl.includes('158.69.213.106') || imageUrl.includes('/t/')) {
+    // Si la URL ya es completa, usarla directamente
+    let normalizedUrl = imageUrl;
+    if (imageUrl.startsWith('/t/')) {
+      // Es una URL relativa de Openinary, construir la URL completa
+      const openinaryUrl = process.env.NEXT_PUBLIC_OPENINARY_URL || 'http://158.69.213.106:3000';
+      normalizedUrl = `${openinaryUrl}${imageUrl}`;
+    }
+    
+    return `/api/image-proxy?url=${encodeURIComponent(normalizedUrl)}`;
+  }
+
+  // Si es una URL externa (Cloudinary, etc), usar el proxy
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('//')) {
     // Normalizar URLs que empiezan con //
     let normalizedUrl = imageUrl;

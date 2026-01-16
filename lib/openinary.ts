@@ -1,138 +1,134 @@
-// Configuración de Openinary para subir imágenes
-// Openinary es una alternativa self-hosted a Cloudinary
+import FormData from 'form-data'
+import axios from 'axios'
 
-const OPENINARY_URL = process.env.OPENINARY_URL || process.env.NEXT_PUBLIC_OPENINARY_URL
-const OPENINARY_API_KEY = process.env.OPENINARY_API_KEY
-
-if (!OPENINARY_URL) {
-  console.warn('OPENINARY_URL no está configurado en las variables de entorno')
-}
-
-if (!OPENINARY_API_KEY) {
-  console.warn('OPENINARY_API_KEY no está configurado en las variables de entorno')
-}
-
-export interface UploadResult {
-  url: string
-  publicId: string
-  width?: number
-  height?: number
-  format?: string
-}
+// Configuración de Openinary
+const OPENINARY_URL = process.env.OPENINARY_URL || 'http://158.69.213.106:3000'
+const OPENINARY_API_KEY = process.env.OPENINARY_API_KEY || 'mUqzktBdIHOKjfFTFnAdmLDeZNSdcpsgbSRRaHfGzvPbtfxziEnLqTspbBwSNgTN'
 
 /**
- * Sube un archivo a Openinary
- * @param buffer - Buffer del archivo a subir
- * @param options - Opciones de subida (folder, nombre del archivo, etc.)
+ * Sube una imagen a Openinary
  */
 export async function uploadToOpeninary(
-  buffer: Buffer,
-  options: {
-    folder?: string
-    filename?: string
-    resourceType?: 'image' | 'video' | 'raw' | 'auto'
-  } = {}
-): Promise<UploadResult> {
+  file: File | Buffer,
+  folder: string = 'uploads',
+  fileName?: string
+): Promise<string> {
   try {
-    if (!OPENINARY_URL || !OPENINARY_API_KEY) {
-      throw new Error('Openinary no está configurado correctamente')
+    // Convertir File a Buffer si es necesario
+    let buffer: Buffer
+    let originalFileName: string
+    let contentType: string
+
+    if (file instanceof File) {
+      const arrayBuffer = await file.arrayBuffer()
+      buffer = Buffer.from(arrayBuffer)
+      originalFileName = file.name || fileName || 'image.jpg'
+      contentType = file.type || 'image/jpeg'
+    } else {
+      buffer = file
+      originalFileName = fileName || 'image.jpg'
+      contentType = 'image/jpeg'
     }
 
+    // Crear FormData
     const formData = new FormData()
     
-    // Crear un blob del buffer
-    const uint8Array = new Uint8Array(buffer)
-    const blob = new Blob([uint8Array])
-    const filename = options.filename || `upload-${Date.now()}.jpg`
-    formData.append('file', blob, filename)
+    // Construir el path completo incluyendo el folder
+    // El folder se incluye en el path del archivo, no como campo separado
+    const filePath = folder && folder !== 'uploads' 
+      ? `${folder}/${originalFileName}`
+      : originalFileName
     
-    // Agregar metadata
-    if (options.folder) {
-      formData.append('folder', options.folder)
-    }
-    
-    // Subir a Openinary
-    const uploadUrl = `${OPENINARY_URL}/api/upload`
-    const response = await fetch(uploadUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENINARY_API_KEY}`,
-      },
-      body: formData,
+    // CRÍTICO: Usar "files" (plural) como campo para el archivo
+    formData.append('files', buffer, {
+      filename: originalFileName, // Nombre del archivo sin path
+      contentType: contentType, // Usar el tipo real del archivo
+      knownLength: buffer.length,
     })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`Error al subir a Openinary: ${response.status} - ${errorText}`)
-    }
-
-    const result = await response.json()
     
-    // Retornar la URL de la imagen subida
-    // La URL directa de Openinary puede no funcionar en el navegador,
-    // por lo que usaremos nuestro proxy
-    return {
-      url: result.url || result.secure_url || result.path,
-      publicId: result.public_id || result.id || filename,
-      width: result.width,
-      height: result.height,
-      format: result.format,
+    // CRÍTICO: Enviar el path completo usando "names" para incluir el folder
+    // Esto es lo que la API espera según el código fuente
+    formData.append('names', filePath)
+
+    // Obtener headers del FormData
+    const formHeaders = formData.getHeaders()
+
+    // Realizar la petición al endpoint correcto
+    const response = await axios.post(
+      `${OPENINARY_URL}/api/upload`, // Ruta de tu API Openinary
+      formData,
+      {
+
+    
+        headers: {
+            'Authorization': `Bearer ${OPENINARY_API_KEY}`,
+          ...formHeaders,
+        },
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+        timeout: 30000,
+      }
+    )
+
+    const result = response.data
+    
+    // Verificar que la respuesta sea exitosa
+    if (!result.success) {
+      const errorMsg = result.error || result.errors?.[0]?.error || 'Error desconocido del servidor'
+      throw new Error(`Error del servidor: ${errorMsg}`)
     }
-  } catch (error) {
-    console.error('Error en uploadToOpeninary:', error)
-    throw error
+    
+    // El servidor devuelve { success: true, files: [{ filename, path, size, url }] }
+    if (!result.files || !result.files[0] || !result.files[0].url) {
+      throw new Error('Respuesta del servidor no contiene URL válida')
+    }
+
+    // La URL viene como "/t/path.jpg" desde el servidor
+    // Construir la URL completa con el servidor
+    const relativeUrl = result.files[0].url
+    const baseUrl = OPENINARY_URL.replace(/\/$/, '') // Remover trailing slash si existe
+    const fullUrl = relativeUrl.startsWith('/') 
+      ? `${baseUrl}${relativeUrl}` 
+      : `${baseUrl}/${relativeUrl}`
+    
+    return fullUrl
+  } catch (error: any) {
+    console.error('Error al subir archivo a Openinary:', error.message)
+    
+    // Si hay respuesta del servidor, incluir más detalles
+    if (error.response) {
+      const status = error.response.status
+      const errorData = error.response.data
+      
+      // Error 400: Bad Request (validación fallida, archivo muy grande, etc.)
+      if (status === 400) {
+        const errorMsg = errorData?.error || errorData?.errors?.[0]?.error || JSON.stringify(errorData)
+        throw new Error(`Error 400: ${errorMsg}`)
+      }
+      
+      // Otros errores del servidor
+      throw new Error(`Error ${status}: ${errorData?.error || error.message}`)
+    }
+    
+    // Error de red u otro error
+    throw new Error(`Error al subir la imagen: ${error.message}`)
   }
 }
 
 /**
- * Elimina un archivo de Openinary
- * @param publicId - ID público del archivo a eliminar
+ * Sube un archivo (imagen) a Openinary
+ * @param file - Archivo a subir
+ * @param folder - Carpeta donde guardar el archivo (opcional)
+ * @returns URL del archivo subido
  */
-export async function deleteFromOpeninary(publicId: string): Promise<boolean> {
-  try {
-    if (!OPENINARY_URL || !OPENINARY_API_KEY) {
-      console.warn('Openinary no está configurado, no se puede eliminar')
-      return false
-    }
-
-    const deleteUrl = `${OPENINARY_URL}/api/delete/${encodeURIComponent(publicId)}`
-    const response = await fetch(deleteUrl, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${OPENINARY_API_KEY}`,
-      },
-    })
-
-    return response.ok
-  } catch (error) {
-    console.error('Error al eliminar de Openinary:', error)
-    return false
-  }
-}
-
-/**
- * Obtiene la URL del proxy para una imagen de Openinary
- * Esto evita problemas de CORS y IPs bloqueadas
- */
-export function getProxiedImageUrl(imageUrl: string): string {
-  if (!imageUrl) return ''
-  
-  // Si la URL ya es del proxy, no hacer nada
-  if (imageUrl.startsWith('/api/image-proxy')) {
-    return imageUrl
-  }
-  
-  // Si es una URL externa de Openinary, usar el proxy
-  if (imageUrl.includes('openinary') || imageUrl.startsWith('http')) {
-    return `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`
-  }
-  
-  // Si es una URL relativa o local, devolver tal cual
-  return imageUrl
+export async function uploadFileToOpeninary(
+  file: File,
+  folder: string = 'uploads'
+): Promise<string> {
+  return uploadToOpeninary(file, folder)
 }
 
 export default {
   upload: uploadToOpeninary,
-  delete: deleteFromOpeninary,
-  getProxiedUrl: getProxiedImageUrl,
+  uploadFile: uploadFileToOpeninary,
 }

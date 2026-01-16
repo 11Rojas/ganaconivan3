@@ -66,16 +66,7 @@ export async function POST(req: Request) {
     // Subir imagen a Openinary si existe
     if (imageFile) {
       try {
-        const arrayBuffer = await imageFile.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-
-        const result = await uploadToOpeninary(buffer, {
-          folder: "rifas",
-          filename: imageFile.name,
-          resourceType: "auto"
-        });
-
-        imageUrl = result.url || "";
+        imageUrl = await uploadToOpeninary(imageFile, "rifas", imageFile.name);
       } catch (error) {
         console.error("Openinary upload error:", error);
         throw new Error("Error al subir la imagen");
