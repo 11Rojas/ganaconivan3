@@ -31,21 +31,22 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Por seguridad, solo permitir URLs de Openinary o del servidor configurado
-    const openinaryUrl = process.env.OPENINARY_URL || process.env.NEXT_PUBLIC_OPENINARY_URL
+    // Por seguridad, validar que la URL sea de fuentes permitidas
+    const allowedHosts = [
+      '158.69.213.106',  // IP del servidor Openinary
+      'localhost',
+      '127.0.0.1',
+      'res.cloudinary.com',  // Por compatibilidad
+    ]
     
-    // Si está configurado, validar que la URL venga del servidor de Openinary
-    if (openinaryUrl) {
-      const openinaryHost = new URL(openinaryUrl).hostname
-      if (!url.hostname.includes(openinaryHost) && !url.hostname.includes('openinary')) {
-        // También permitir localhost para desarrollo
-        if (!url.hostname.includes('localhost') && !url.hostname.includes('127.0.0.1')) {
-          return NextResponse.json(
-            { error: 'URL no autorizada' },
-            { status: 403 }
-          )
-        }
-      }
+    const isAllowed = allowedHosts.some(host => url.hostname.includes(host))
+    
+    if (!isAllowed) {
+      console.warn('URL no autorizada:', url.hostname)
+      return NextResponse.json(
+        { error: 'URL no autorizada. Solo se permiten imágenes del servidor Openinary.' },
+        { status: 403 }
+      )
     }
 
     // Obtener la imagen desde Openinary
