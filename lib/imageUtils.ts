@@ -1,21 +1,38 @@
+/**
+ * Obtiene la URL de una imagen usando el proxy si es necesario
+ * Esto permite cargar imágenes de Openinary que tienen problemas de IP/CORS
+ */
 export function getImageUrl(imageUrl: string | undefined, fallback: string = "/placeholder.jpg"): string {
   if (!imageUrl || imageUrl.trim() === '') {
     return fallback;
   }
 
-  // Si ya es una URL completa, devolverla
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+  // Si ya es una URL del proxy, devolverla
+  if (imageUrl.startsWith('/api/image-proxy')) {
     return imageUrl;
   }
 
-  // Si es una ruta relativa, agregar el dominio base si es necesario
-  if (imageUrl.startsWith('/')) {
+  // Si es una ruta relativa local, devolverla tal cual
+  if (imageUrl.startsWith('/') && !imageUrl.startsWith('//')) {
     return imageUrl;
   }
 
-  // Si es una URL de Cloudinary sin protocolo, agregar https
+  // Si es una URL externa (Openinary, Cloudinary, etc), usar el proxy
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('//')) {
+    // Normalizar URLs que empiezan con //
+    let normalizedUrl = imageUrl;
+    if (imageUrl.startsWith('//')) {
+      normalizedUrl = `https:${imageUrl}`;
+    }
+    
+    // Usar el proxy para evitar problemas de CORS/IP
+    return `/api/image-proxy?url=${encodeURIComponent(normalizedUrl)}`;
+  }
+
+  // Si es una URL de Cloudinary sin protocolo, agregar https y usar proxy
   if (imageUrl.includes('cloudinary.com')) {
-    return `https://${imageUrl}`;
+    const normalizedUrl = `https://${imageUrl}`;
+    return `/api/image-proxy?url=${encodeURIComponent(normalizedUrl)}`;
   }
 
   // Por defecto, devolver la imagen tal como está

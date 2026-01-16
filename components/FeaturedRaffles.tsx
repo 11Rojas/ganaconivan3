@@ -7,6 +7,7 @@ import { Coins } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import TopBuyers from "./TopBuyers"
+import { getImageUrl } from "@/lib/imageUtils"
 
 export default function FeaturedRaffles() {
   const [raffles, setRaffles] = useState<Raffle[]>([])
@@ -109,7 +110,7 @@ export default function FeaturedRaffles() {
       {raffles.length > 0 && (
         <div className="relative w-full h-[60vh] md:h-[70vh] overflow-hidden">
           <Image
-            src={raffles[0].image || "/placeholder.svg"}
+            src={getImageUrl(raffles[0].image, "/placeholder.svg")}
             alt={raffles[0].title}
             fill
             className="object-cover"

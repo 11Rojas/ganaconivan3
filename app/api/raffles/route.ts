@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/mongodb"
 import Raffle  from "@/models/Raffle"
 import { requireAdmin } from "@/lib/auth"
-import cloudinary from "@/lib/cloudinary";
+import { uploadToOpeninary } from "@/lib/openinary"
 
 
 
@@ -63,26 +63,23 @@ export async function POST(req: Request) {
 
     let imageUrl = "";
 
-    // Subir imagen a Cloudinary si existe
+    // Subir imagen a Openinary si existe
     if (imageFile) {
-      const arrayBuffer = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+      try {
+        const arrayBuffer = await imageFile.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
 
-      const result = await new Promise<any>((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          { folder: "rifas", resource_type: "auto" },
-          (error, result) => {
-            if (error) {
-              console.error("Cloudinary upload error:", error);
-              reject(error);
-              return;
-            }
-            resolve(result);
-          }
-        ).end(buffer);
-      });
+        const result = await uploadToOpeninary(buffer, {
+          folder: "rifas",
+          filename: imageFile.name,
+          resourceType: "auto"
+        });
 
-      imageUrl = (result as any)?.secure_url || "";
+        imageUrl = result.url || "";
+      } catch (error) {
+        console.error("Openinary upload error:", error);
+        throw new Error("Error al subir la imagen");
+      }
     }
 
     const newRaffle = new Raffle({

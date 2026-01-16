@@ -13,6 +13,7 @@ import PersonalDataForm from "./PersonalDataForm"
 import TicketVerifierModal from "./TicketVerifierModal"
 import PrizesModal from "./PrizesModal"
 import WhatsApp from "./Whatsapp"
+import { getImageUrl } from "@/lib/imageUtils"
 
 interface MobileHeroProps {
   raffle: Raffle
@@ -299,7 +300,7 @@ export default function MobileHero({ raffle, exchangeRate, otherRaffles = [] }: 
                 <div key={otherRaffle._id} className="bg-gray-800 rounded-lg overflow-hidden">
                   <div className="relative h-24">
                     <Image
-                      src={otherRaffle.image || "/placeholder.svg"}
+                      src={getImageUrl(otherRaffle.image, "/placeholder.svg")}
                       alt={otherRaffle.title}
                       fill
                       className="object-cover"

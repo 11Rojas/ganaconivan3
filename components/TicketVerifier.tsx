@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Search, Ticket, Calendar, DollarSign, CheckCircle, XCircle, Clock } from "lucide-react"
 import Image from "next/image"
+import { getImageUrl } from "@/lib/imageUtils"
 
 interface TicketData {
   _id: string
@@ -217,7 +218,7 @@ export default function TicketVerifier() {
                           {ticket.raffleId.image && (
                             <div className="relative">
                               <Image
-                                src={ticket.raffleId.image}
+                                src={getImageUrl(ticket.raffleId.image)}
                                 alt={ticket.raffleId.title}
                                 width={300}
                                 height={200}

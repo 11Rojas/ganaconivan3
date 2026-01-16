@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Calendar, Gift, Tag, ChevronLeft, ChevronRight, CheckCircle, ShoppingCart } from "lucide-react"
 import type { Raffle } from "@/lib/types"
 import TicketVerifierModal from "./TicketVerifierModal"
+import { getImageUrl } from "@/lib/imageUtils"
 
 export default function LatestDraws() {
   const [raffles, setRaffles] = useState<Raffle[]>([])
@@ -109,7 +110,7 @@ export default function LatestDraws() {
               {/* Image */}
               <div className="relative h-48">
                 <Image
-                  src={raffle.image || "/placeholder.svg"}
+                  src={getImageUrl(raffle.image, "/placeholder.svg")}
                   alt={raffle.title}
                   fill
                   className="object-cover"

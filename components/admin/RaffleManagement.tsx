@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Plus, Edit, Trash2, Calendar, DollarSign, Trophy, Users, ImageIcon, Eye, Ticket } from "lucide-react"
+import { getImageUrl } from "@/lib/imageUtils"
 interface Raffle {
   _id: string
   title: string
@@ -344,7 +345,7 @@ const [number, setNumber] = useState<number>(0);
                 {(imagePreview || formData.image) && (
                   <div className="mt-3">
                     <img
-                      src={imagePreview || formData.image || ""}
+                      src={imagePreview || (formData.image ? getImageUrl(formData.image) : "")}
                       alt="Vista previa"
                       className="h-40 object-contain rounded-md border border-gray-600"
                     />

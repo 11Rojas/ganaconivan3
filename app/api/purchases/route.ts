@@ -3,15 +3,7 @@ import { connectDB } from "@/lib/mongodb"
 import { Purchase } from "@/models/Purchase"
 import Raffle from "@/models/Raffle"
 import { requireAuth } from "@/lib/auth"
-import { v2 as cloudinary } from 'cloudinary'
-
-// Configura Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true
-})
+import { uploadToOpeninary } from "@/lib/openinary"
 
 export async function POST(request: NextRequest) {
   try {
@@ -143,28 +135,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Subir comprobante a Cloudinary (opcional)
+    // Subir comprobante a Openinary (opcional)
     let receiptUrl = ""
     if (receiptFile) {
       try {
         const arrayBuffer = await receiptFile.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
 
-        const result = await new Promise((resolve, reject) => {
-          cloudinary.uploader.upload_stream(
-            { 
-              folder: "receipts",
-              resource_type: "auto",
-              allowed_formats: ['jpg', 'jpeg', 'png', 'pdf']
-            },
-            (error, result) => {
-              if (error) reject(error)
-              else resolve(result)
-            }
-          ).end(buffer)
+        const result = await uploadToOpeninary(buffer, {
+          folder: "receipts",
+          filename: receiptFile.name,
+          resourceType: "auto"
         })
 
-        receiptUrl = (result as any)?.secure_url || ""
+        receiptUrl = result.url || ""
       } catch (error) {
         console.error('Error subiendo comprobante:', error)
         // Continuar sin comprobante si hay error

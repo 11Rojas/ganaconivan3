@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/mongodb"
 import Raffle from "@/models/Raffle"
 import { requireAdmin } from "@/lib/auth"
-import cloudinary from "@/lib/cloudinary"
+import { uploadToOpeninary, deleteFromOpeninary } from "@/lib/openinary"
 
 export async function GET(
   request: NextRequest,
@@ -66,37 +66,34 @@ export async function PUT(
 
     let imageUrl = currentImage || ""
 
-    // Subir nueva imagen a Cloudinary si existe
+    // Subir nueva imagen a Openinary si existe
     if (imageFile) {
-      const arrayBuffer = await imageFile.arrayBuffer()
-      const buffer = Buffer.from(arrayBuffer)
+      try {
+        const arrayBuffer = await imageFile.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
 
-      const result = await new Promise<any>((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          { folder: "rifas", resource_type: "auto" },
-          (error, result) => {
-            if (error) {
-              console.error("Cloudinary upload error:", error)
-              reject(error)
-              return
+        const result = await uploadToOpeninary(buffer, {
+          folder: "rifas",
+          filename: imageFile.name,
+          resourceType: "auto"
+        })
+
+        imageUrl = result.url || currentImage || ""
+
+        // Eliminar imagen anterior de Openinary si existe
+        if (currentImage && currentImage !== imageUrl) {
+          try {
+            const publicId = currentImage.split('/').pop()?.split('.')[0]
+            if (publicId) {
+              await deleteFromOpeninary(`rifas/${publicId}`)
             }
-            resolve(result)
+          } catch (error) {
+            console.error("Error deleting old image:", error)
           }
-        ).end(buffer)
-      })
-
-      imageUrl = (result as any)?.secure_url || currentImage || ""
-
-      // Eliminar imagen anterior de Cloudinary si existe
-      if (currentImage && currentImage !== imageUrl) {
-        try {
-          const publicId = currentImage.split('/').pop()?.split('.')[0]
-          if (publicId) {
-            await cloudinary.uploader.destroy(`rifas/${publicId}`)
-          }
-        } catch (error) {
-          console.error("Error deleting old image:", error)
         }
+      } catch (error) {
+        console.error("Openinary upload error:", error)
+        throw new Error("Error al subir la imagen")
       }
     }
 
@@ -148,15 +145,15 @@ export async function DELETE(
       )
     }
 
-    // Eliminar imagen de Cloudinary si existe
+    // Eliminar imagen de Openinary si existe
     if (raffle.image) {
       try {
         const publicId = raffle.image.split('/').pop()?.split('.')[0]
         if (publicId) {
-          await cloudinary.uploader.destroy(`rifas/${publicId}`)
+          await deleteFromOpeninary(`rifas/${publicId}`)
         }
       } catch (error) {
-        console.error("Error deleting image from Cloudinary:", error)
+        console.error("Error deleting image from Openinary:", error)
       }
     }
 

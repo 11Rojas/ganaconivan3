@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, Trophy, Clock, Gift } from 'lucide-react'
 import Image from 'next/image'
+import { getImageUrl } from '@/lib/imageUtils'
 
 interface Winner {
   _id: string
@@ -156,7 +157,7 @@ export default function PrizesModal({
                         <div className="w-12 h-12 bg-gray-500 rounded-lg flex items-center justify-center flex-shrink-0">
                           {winner.image ? (
                             <Image
-                              src={winner.image}
+                              src={getImageUrl(winner.image)}
                               alt={winner.name}
                               width={48}
                               height={48}
