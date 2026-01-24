@@ -206,7 +206,7 @@ export default function MobileTicketVerifier() {
                               variant="outline" 
                               className="bg-green-500 text-white border-green-500"
                             >
-                              {number}
+                              {number.toString().padStart(6, '0')}
                             </Badge>
                           ))}
                         </div>

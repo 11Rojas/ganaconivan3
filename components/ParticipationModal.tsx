@@ -89,7 +89,7 @@ export default function ParticipationModal({
   const generateTicketNumbers = (quantity: number): string[] => {
     const numbers: string[] = []
     for (let i = 0; i < quantity; i++) {
-      const number = Math.floor(Math.random() * 9000) + 1000
+      const number = Math.floor(Math.random() * 900000) + 100000
       numbers.push(number.toString())
     }
     return numbers

@@ -63,7 +63,7 @@ export default function SuccessModal({
                     key={index}
                     className="bg-green-500 text-white font-bold py-3 px-4 rounded-lg text-center text-lg"
                   >
-                    {number}
+                    {number.toString().padStart(6, '0')}
                   </div>
                 ))}
               </div>

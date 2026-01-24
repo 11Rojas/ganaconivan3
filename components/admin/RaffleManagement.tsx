@@ -533,7 +533,7 @@ const [number, setNumber] = useState<number>(0);
             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
             .map((_, index) => {
               const number = (currentPage - 1) * itemsPerPage + index + 1
-              const formattedNumber = number.toString().padStart(4, '0')
+              const formattedNumber = number.toString().padStart(6, '0')
               const isSold = selectedRaffle?.soldNumbers?.includes(number)
               
               return (

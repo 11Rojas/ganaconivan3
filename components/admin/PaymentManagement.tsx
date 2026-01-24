@@ -147,7 +147,7 @@ export default function PaymentManagement() {
     // Normalizar los números a ambos formatos para búsqueda
     const numbersAsString = purchase.numbers.map(num => {
       const numStr = num.toString();
-      return `${numStr} ${numStr.padStart(4, '0')}`; // Incluye ambos formatos
+      return `${numStr} ${numStr.padStart(6, '0')}`; // Incluye ambos formatos
     }).join(' ');
     
     // Normalizar el término de búsqueda (quitar ceros iniciales para coincidencias)
@@ -162,7 +162,7 @@ export default function PaymentManagement() {
         const numStr = num.toString();
         return (
           numStr === normalizedSearchTerm || 
-          numStr.padStart(4, '0') === searchTerm
+          numStr.padStart(6, '0') === searchTerm
         );
       });
     
@@ -337,7 +337,7 @@ export default function PaymentManagement() {
   {purchase.numbers.length > 5 ? (
     <>
       <p className="text-green-400 inline-flex items-center cursor-help">
-        {purchase.numbers.slice(0, 5).map(num => num.toString().padStart(4, '0')).join(", ")}
+        {purchase.numbers.slice(0, 5).map(num => num.toString().padStart(6, '0')).join(", ")}
         <span className="ml-1 bg-green-400/20 text-green-300 px-2 py-0.5 rounded text-xs">
           +{purchase.numbers.length - 5}
         </span>
@@ -356,7 +356,7 @@ export default function PaymentManagement() {
               key={num} 
               className="inline-flex items-center justify-center min-w-[2rem] px-1 py-0.5 text-xs font-medium rounded bg-gray-700 text-yellow-400 border border-yellow-400/20"
             >
-              {num.toString().padStart(4, '0')}
+              {num.toString().padStart(6, '0')}
             </span>
           ))}
         </div>
@@ -367,7 +367,7 @@ export default function PaymentManagement() {
     </>
   ) : (
     <p className="text-yellow-400">
-      {purchase.numbers.map(num => num.toString().padStart(4, '0')).join(", ")}
+      {purchase.numbers.map(num => num.toString().padStart(6, '0')).join(", ")}
     </p>
   )}
 </div>

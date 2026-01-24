@@ -141,7 +141,7 @@ export default function TicketVerifierModal({
                       <div className="space-y-1">
                         <p className="text-white font-medium">{ticket.raffleTitle}</p>
                         <p className="text-gray-300 text-sm">
-                          Números: <span className="text-green-400 font-semibold">{ticket.assignedNumbers?.join(', ') || 'N/A'}</span>
+                          Números: <span className="text-green-400 font-semibold">{ticket.assignedNumbers?.map(n => n.toString().padStart(6, '0')).join(', ') || 'N/A'}</span>
                         </p>
                         <p className="text-gray-400 text-xs">
                           Fecha: {new Date(ticket.createdAt).toLocaleDateString('es-VE')}

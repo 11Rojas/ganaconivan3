@@ -104,9 +104,9 @@ export async function POST(request: NextRequest) {
           )
         }
 
-        // Generar todos los números posibles con formato 0001
+        // Generar todos los números posibles con formato 000001
         const allNumbers = Array.from({ length: totalNumbers }, (_, i) => 
-          (i + 1).toString().padStart(4, '0')
+          (i + 1).toString().padStart(6, '0')
         )
         
         // Filtrar números disponibles
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
         const usedNumbers = new Set<string>()
         
         while (assignedNumbers.length < quantity) {
-          const randomNum = Math.floor(Math.random() * 9000) + 1000
+          const randomNum = Math.floor(Math.random() * 900000) + 100000
           const numStr = randomNum.toString()
           
           if (!usedNumbers.has(numStr)) {

@@ -237,7 +237,7 @@ export default function TicketVerifier() {
                                     key={index}
                                     className="bg-[#febd59] text-black px-3 py-1 rounded-full text-sm font-semibold"
                                   >
-                                    {number.toString().padStart(2, '0')}
+                                    {number.toString().padStart(6, '0')}
                                   </span>
                                 ))}
                               </div>

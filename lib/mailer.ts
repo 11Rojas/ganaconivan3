@@ -59,7 +59,7 @@ export const sendPurchaseNotification = async (purchaseData: {
           <h4 style="color: white; margin-bottom: 10px;">Números de tus boletos:</h4>
           <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
             ${purchaseData.numbers.map(number => 
-              `<span style="background: #22c55e; color: black; padding: 8px 12px; border-radius: 20px; font-weight: bold; font-size: 1.1em;">${number.toString().padStart(2, '0')}</span>`
+              `<span style="background: #22c55e; color: black; padding: 8px 12px; border-radius: 20px; font-weight: bold; font-size: 1.1em;">${number.toString().padStart(6, '0')}</span>`
             ).join('')}
           </div>
         </div>
@@ -96,7 +96,7 @@ export const sendPurchaseApprovalEmail = async (purchaseData: {
           <h4 style="color: white; margin-bottom: 10px;">Números de tus boletos:</h4>
           <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
             ${purchaseData.numbers.map(number => 
-              `<span style="background: #22c55e; color: black; padding: 8px 12px; border-radius: 20px; font-weight: bold; font-size: 1.1em;">${number.toString().padStart(2, '0')}</span>`
+              `<span style="background: #22c55e; color: black; padding: 8px 12px; border-radius: 20px; font-weight: bold; font-size: 1.1em;">${number.toString().padStart(6, '0')}</span>`
             ).join('')}
           </div>
         </div>
